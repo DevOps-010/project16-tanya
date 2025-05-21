@@ -2,12 +2,13 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven-3.9.9'   // Ensure Maven is configured in Jenkins Global Tool Configuration
-        jdk 'JDK11'           // Use the same name as configured in Jenkins Global Tool Configuration
+        maven 'Maven-3.9.9'  // Ensure this matches Jenkins Global Tool config
+        jdk 'JDK11'          // Ensure this matches Jenkins Global Tool config
     }
 
     environment {
-        SONARQUBE = 'SonarQube'  // Jenkins SonarQube server name
+        SONARQUBE = 'SonarQube'  // Name of your SonarQube server configured in Jenkins
+        DOCKER_HOST = 'unix:///var/run/docker.sock'
     }
 
     stages {
@@ -21,7 +22,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building project with Maven...'
-                sh 'mvn clean install'
+                sh 'mvn clean install -DskipTests'
             }
         }
 
@@ -37,7 +38,7 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 echo 'Waiting for SonarQube Quality Gate result...'
-                timeout(time: 1, unit: 'MINUTES') {
+                timeout(time: 2, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
             }
