@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    options {
+        timeout(time: 20, unit: 'MINUTES') // Increase if needed
+    }
+
     tools {
         maven 'maven'  // Ensure this matches Jenkins Global Tool config
         jdk 'jdk17'    // Ensure this matches Jenkins Global Tool config
@@ -44,5 +48,16 @@ pipeline {
             }
         }
     }
-}
 
+    post {
+        success {
+            echo 'Pipeline completed successfully!'
+        }
+        failure {
+            echo 'Pipeline failed.'
+        }
+        always {
+            echo 'Pipeline finished.'
+        }
+    }
+}
