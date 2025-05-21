@@ -1,14 +1,16 @@
-# jenkins-docker.Dockerfile
-FROM jenkins/jenkins:lts-jdk11
+FROM jenkins/jenkins:lts-jdk17
 
 USER root
 
-# Install Docker CLI inside Jenkins container
-RUN apt-get update && \
-    apt-get install -y docker.io && \
-    apt-get clean
+# Install Docker CLI
+RUN curl -fsSL https://get.docker.com | sh
 
-# Allow jenkins user to access docker socket
+# Give Jenkins user Docker access
 RUN usermod -aG docker jenkins
 
 USER jenkins
+
+# Optional: Preinstall plugins
+COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
+RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
+
