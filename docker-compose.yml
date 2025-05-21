@@ -10,7 +10,7 @@ services:
       - "8080:8080"
       - "50000:50000"   # Jenkins agent communication port
     volumes:
-      - jenkins_home:/var/jenkins_home
+      - java-maven-app_jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - DOCKER_HOST=unix:///var/run/docker.sock
@@ -37,5 +37,5 @@ services:
       - postgresql:/var/lib/postgresql/data
 
 volumes:
-  jenkins_home:
+  java-maven-app_jenkins_home:
   postgresql:
