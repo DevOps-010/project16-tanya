@@ -3,7 +3,7 @@ pipeline {
 
     tools {
         maven 'maven'  // Ensure this matches Jenkins Global Tool config
-        jdk 'jdk17'          // Ensure this matches Jenkins Global Tool config
+        jdk 'jdk17'    // Ensure this matches Jenkins Global Tool config
     }
 
     environment {
@@ -38,7 +38,7 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 echo 'Waiting for SonarQube Quality Gate result...'
-                timeout(time: 2, unit: 'MINUTES') {
+                timeout(time: 5, unit: 'MINUTES') {  // Increased timeout to 5 minutes
                     waitForQualityGate abortPipeline: true
                 }
             }
