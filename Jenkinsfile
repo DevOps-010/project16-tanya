@@ -2,30 +2,33 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven-3.9.9'   // Make sure Maven is also configured in Jenkins
-        jdk 'JDK11'     // Use the exact name you gave in Global Tool Config
+        maven 'Maven-3.9.9'   // Ensure Maven is configured in Jenkins Global Tool Configuration
+        jdk 'JDK11'           // Use the same name as configured in Jenkins Global Tool Configuration
     }
 
     environment {
-        SONARQUBE = 'SonarQube'  // The name you gave your SonarQube server config in Jenkins
+        SONARQUBE = 'SonarQube'  // Jenkins SonarQube server name
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git 'https://github.com/DevOps-010/project16-tanya.git'
+                echo 'Checking out source code...'
+                git credentialsId: 'github-pat', url: 'https://github.com/DevOps-010/project16-tanya.git', branch: 'main'
             }
         }
 
         stage('Build') {
             steps {
+                echo 'Building project with Maven...'
                 sh 'mvn clean install'
             }
         }
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {
+                echo 'Running SonarQube static code analysis...'
+                withSonarQubeEnv("${env.SONARQUBE}") {
                     sh 'mvn sonar:sonar'
                 }
             }
@@ -33,6 +36,7 @@ pipeline {
 
         stage('Quality Gate') {
             steps {
+                echo 'Waiting for SonarQube Quality Gate result...'
                 timeout(time: 1, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
@@ -40,3 +44,4 @@ pipeline {
         }
     }
 }
+
