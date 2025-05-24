@@ -13,12 +13,15 @@ pipeline {
     environment {
         SONARQUBE = 'SonarQube'
         DOCKER_HOST = 'unix:///var/run/docker.sock'
-        IMAGE_NAME = 'yourapp-image:latest'  // Change as needed
+        IMAGE_NAME = 'tanya119/java-maven-app:latest'  // Change as needed
     }
 
     stages {
         stage('Checkout') {
             steps {
+                echo 'Cleaning workspace before checkout...'
+                cleanWs()  // Requires Workspace Cleanup Plugin
+                
                 echo 'Checking out source code...'
                 git credentialsId: 'github-pat', url: 'https://github.com/DevOps-010/project16-tanya.git', branch: 'main'
             }
@@ -76,4 +79,5 @@ pipeline {
         }
     }
 }
+
 

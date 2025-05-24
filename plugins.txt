@@ -4,3 +4,4 @@ git
 blueocean
 sonar
 slack
+workspace-cleanup
