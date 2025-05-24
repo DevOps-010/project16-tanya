@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: java-maven-app
+  labels:
+    app: java-maven-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: java-maven-app
+  template:
+    metadata:
+      labels:
+        app: java-maven-app
+    spec:
+      containers:
+        - name: java-maven-app
+          image: tanya119/java-maven-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+          command: ["java", "--add-opens=java.base/java.io=ALL-UNNAMED", "-jar", "/app/app.jar"]
+          resources:
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+          readinessProbe:
+            httpGet:
+              path: /hello
+              port: 8081
+            initialDelaySeconds: 10
+            periodSeconds: 5
+
+
+
