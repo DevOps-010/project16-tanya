@@ -2,17 +2,18 @@ pipeline {
     agent any
 
     options {
-        timeout(time: 20, unit: 'MINUTES') // Increase if needed
+        timeout(time: 20, unit: 'MINUTES')
     }
 
     tools {
-        maven 'maven'  // Ensure this matches Jenkins Global Tool config
-        jdk 'jdk17'    // Ensure this matches Jenkins Global Tool config
+        maven 'maven'
+        jdk 'jdk17'
     }
 
     environment {
-        SONARQUBE = 'SonarQube'  // Name of your SonarQube server configured in Jenkins
+        SONARQUBE = 'SonarQube'
         DOCKER_HOST = 'unix:///var/run/docker.sock'
+        IMAGE_NAME = 'yourapp-image:latest'  // Change as needed
     }
 
     stages {
@@ -42,9 +43,23 @@ pipeline {
         stage('Quality Gate') {
             steps {
                 echo 'Waiting for SonarQube Quality Gate result...'
-                timeout(time: 5, unit: 'MINUTES') {  // Increased timeout to 5 minutes
+                timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo 'Building Docker image...'
+                sh 'docker build -t ${IMAGE_NAME} .'
+            }
+        }
+
+        stage('Trivy Scan') {
+            steps {
+                echo 'Running Trivy security scan on Docker image...'
+                sh 'trivy image --exit-code 1 --severity HIGH,CRITICAL ${IMAGE_NAME}'
             }
         }
     }
@@ -61,3 +76,4 @@ pipeline {
         }
     }
 }
+

@@ -36,6 +36,12 @@ services:
     volumes:
       - postgresql:/var/lib/postgresql/data
 
+  trivy:
+    image: aquasec/trivy:latest
+    container_name: trivy
+    entrypoint: ["sleep", "infinity"]  # Keeps container running so Jenkins can exec commands
+    # No ports or volumes needed since it’s used for scanning images inside Docker
+
 volumes:
   java-maven-app_jenkins_home:
   postgresql:
