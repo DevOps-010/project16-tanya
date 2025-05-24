@@ -19,11 +19,11 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                echo 'Cleaning workspace before checkout...'
-                cleanWs()  // Requires Workspace Cleanup Plugin
-                
-                echo 'Checking out source code...'
-                git credentialsId: 'github-pat', url: 'https://github.com/DevOps-010/project16-tanya.git', branch: 'main'
+                // Clean workspace before checkout
+                cleanWs()
+                // Checkout code from Git
+                git branch: 'main', // or 'master' depending on your default branch
+                    url: 'https://github.com/DevOps-010/project16-tanya.git'
             }
         }
 
