@@ -17,6 +17,7 @@ services:
       - ${HOME}/.minikube:/root/.minikube
     environment:
       - DOCKER_HOST=unix:///var/run/docker.sock
+      - KUBECONFIG=/root/.kube/config                   # ✅ Make sure kubectl knows the kubeconfig path
 
   sonarqube:
     image: sonarqube:lts

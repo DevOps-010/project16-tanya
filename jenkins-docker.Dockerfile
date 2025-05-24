@@ -25,6 +25,9 @@ ARG DOCKER_GID=1
 RUN groupadd -g ${DOCKER_GID} docker || true
 RUN usermod -aG docker jenkins || true
 
+# ✅ Set KUBECONFIG environment variable globally
+ENV KUBECONFIG=/root/.kube/config
+
 USER jenkins
 
 # Optional: Preinstall plugins
