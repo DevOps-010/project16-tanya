@@ -13,17 +13,19 @@ pipeline {
     environment {
         SONARQUBE = 'SonarQube'
         DOCKER_HOST = 'unix:///var/run/docker.sock'
-        IMAGE_NAME = 'tanya119/java-maven-app:latest'  // Change as needed
+        IMAGE_NAME = 'tanya119/java-maven-app:latest'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Clean workspace before checkout
                 cleanWs()
-                // Checkout code from Git
-                git branch: 'main', // or 'master' depending on your default branch
-                    url: 'https://github.com/DevOps-010/project16-tanya.git'
+                checkout([$class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/DevOps-010/project16-tanya.git'
+                    ]]
+                ])
             }
         }
 
