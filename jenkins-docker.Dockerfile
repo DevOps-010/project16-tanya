@@ -15,6 +15,11 @@ RUN apt-get install -y apt-transport-https curl gnupg lsb-release ca-certificate
     apt-get update && \
     apt-get install -y trivy
 
+# ✅ Install kubectl
+RUN curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl && \
+    install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl && \
+    rm kubectl
+
 # Create docker group with same GID as host Docker group (default to 998)
 ARG DOCKER_GID=1
 RUN groupadd -g ${DOCKER_GID} docker || true
@@ -25,6 +30,3 @@ USER jenkins
 # Optional: Preinstall plugins
 COPY plugins.txt /usr/share/jenkins/ref/plugins.txt
 RUN jenkins-plugin-cli --plugin-file /usr/share/jenkins/ref/plugins.txt
-
-
-
