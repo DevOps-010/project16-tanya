@@ -1,7 +1,7 @@
-workflow-aggregator
-docker-workflow
-git
-blueocean
-sonar
-slack
-workspace-cleanup
+workflow-aggregator:latest
+docker-workflow:latest
+git:latest
+blueocean:latest
+sonar:latest
+slack:latest
+ws-cleanup:latest
