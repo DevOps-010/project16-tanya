@@ -1,0 +1,128 @@
+pipeline {
+    agent any
+
+    options {
+        timeout(time: 30, unit: 'MINUTES')
+    }
+
+    tools {
+        maven 'maven'
+        jdk 'jdk17'
+    }
+
+    environment {
+        SONARQUBE = 'SonarQube'
+        DOCKER_HOST = 'unix:///var/run/docker.sock'
+        IMAGE_NAME = 'tanya119/java-maven-app:latest'
+        KUBECONFIG = '/root/.kube/config'  // ensures kubectl works from Jenkins
+        TRIVY_CACHE_DIR = '/root/.cache/trivy' // <-- added cache dir for Trivy DB
+    }
+
+    stages {
+        stage('Initialize') {
+            steps {
+                cleanWs()
+                sh 'git init'
+                sh 'git config --global --add safe.directory "$WORKSPACE"'
+                checkout([$class: 'GitSCM',
+                    branches: [[name: '*/main']],
+                    extensions: [],
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/DevOps-010/project16-tanya.git'
+                    ]]
+                ])
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo 'Building project with Maven...'
+                sh 'mvn clean install -DskipTests'
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            options {
+                timeout(time: 10, unit: 'MINUTES')
+            }
+            steps {
+                echo 'Running SonarQube static code analysis...'
+                withSonarQubeEnv("${env.SONARQUBE}") {
+                    sh 'mvn sonar:sonar'
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                echo 'Waiting for SonarQube Quality Gate result...'
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                echo 'Building Docker image...'
+                sh 'docker build -t ${IMAGE_NAME} .'
+            }
+        }
+
+        stage('Prepare Trivy Cache') {
+            steps {
+                echo 'Creating Trivy cache directory...'
+                sh 'mkdir -p ${TRIVY_CACHE_DIR}'
+            }
+        }
+
+        stage('Trivy Scan') {
+            steps {
+                echo 'Running Trivy security scan on Docker image...'
+                sh '''
+                    trivy image --cache-dir ${TRIVY_CACHE_DIR} --exit-code 1 --severity HIGH,CRITICAL ${IMAGE_NAME}
+                '''
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                echo 'Confirming Kubernetes config...'
+                sh '''
+                    kubectl config view
+                    kubectl config current-context
+                '''
+                echo 'Deploying application to Kubernetes...'
+                script {
+                    sh '''
+                    kubectl apply --validate=false -f k8s/deployment.yaml
+                    kubectl apply --validate=false -f k8s/service.yaml
+                    kubectl rollout status deployment/java-maven-app
+                    '''
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            echo 'Pipeline completed successfully!'
+            slackSend(
+                channel: '#all-jenkinstesting',
+                color: 'good',
+                message: "SUCCESS: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' completed successfully. (<${env.BUILD_URL}|View Build>)"
+            )
+        }
+        failure {
+            echo 'Pipeline failed!'
+            slackSend(
+                channel: '#all-jenkinstesting',
+                color: 'danger',
+                message: "FAILURE: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]' failed. (<${env.BUILD_URL}|View Build>)"
+            )
+        }
+    }
+}
