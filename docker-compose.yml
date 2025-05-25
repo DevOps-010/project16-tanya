@@ -6,18 +6,18 @@ services:
       context: .
       dockerfile: jenkins-docker.Dockerfile
     container_name: jenkins
-    user: root                            # Run Jenkins container as root for Docker socket permission
+    user: root                            # Run as root for Docker socket access
     ports:
       - "8080:8080"
-      - "50000:50000"                    # Jenkins agent communication port
+      - "50000:50000"
     volumes:
       - java-maven-app_jenkins_home:/var/jenkins_home
       - /var/run/docker.sock:/var/run/docker.sock
-      # - ${HOME}/.kube/config:/root/.kube/config         # ✅ Mount local kubeconfig into Jenkins
+      - ${HOME}/.kube/config:/root/.kube/config:ro   # Mount kubeconfig for Kubernetes access
       - ${HOME}/.minikube:/root/.minikube
     environment:
       - DOCKER_HOST=unix:///var/run/docker.sock
-      - KUBECONFIG=/root/.kube/config                   # ✅ Make sure kubectl knows the kubeconfig path
+      - KUBECONFIG=/root/.kube/config
 
   sonarqube:
     image: sonarqube:lts
@@ -44,7 +44,10 @@ services:
     image: aquasec/trivy:latest
     container_name: trivy
     entrypoint: ["sleep", "infinity"]
+    volumes:
+      - trivy-cache:/root/.cache/trivy
 
 volumes:
   java-maven-app_jenkins_home:
   postgresql:
+  trivy-cache:
