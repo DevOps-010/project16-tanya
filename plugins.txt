@@ -5,3 +5,5 @@ blueocean:latest
 sonar:latest
 slack:latest
 ws-cleanup:latest
+kubernetes-cli:latest
+
